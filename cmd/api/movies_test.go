@@ -123,7 +123,7 @@ func TestCreateMovie(t *testing.T) {
 			inputData := struct {
 				Title   string   `json:"title"`
 				Year    int32    `json:"year"`
-				Runtime string    `json:"runtime"`
+				Runtime string   `json:"runtime"`
 				Genres  []string `json:"genres"`
 			}{
 				Title:   tt.Title,
@@ -133,9 +133,9 @@ func TestCreateMovie(t *testing.T) {
 			}
 
 			b, err := json.Marshal(&inputData)
-   			 if err != nil {
-      		  t.Fatal("wrong input data");
-    		}
+			if err != nil {
+				t.Fatal("wrong input data")
+			}
 			if tt.name == "test for wrong input" {
 				b = append(b, 'a')
 			}
@@ -148,6 +148,72 @@ func TestCreateMovie(t *testing.T) {
 	}
 }
 
+func TestUpdateMovie(t *testing.T) {
+	app := newTestApplication(t)
+	ts := newTestServer(t, app.routesTest())
+	defer ts.Close()
+
+	const validTitle = "Updated Test Title"
+
+	tests := []struct {
+		name     string
+		Title    string
+		Year     int
+		Runtime  string
+		Genres   []string
+		urlPath  string
+		wantCode int
+	}{
+		{
+			name:     "Updating existing movie",
+			Title:    validTitle,
+			urlPath:  "/v1/movies/1",
+			wantCode: http.StatusOK,
+		},
+		{
+			name:     "Non-existent ID",
+			urlPath:  "/v1/movies/1337",
+			wantCode: http.StatusNotFound,
+		},
+		{
+			name:     "Wrong input",
+			Title:    validTitle,
+			urlPath:  "/v1/movies/1",
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "Validation error",
+			Title:    "",
+			Year:     0,
+			Runtime:  "",
+			Genres:   []string{},
+			urlPath:  "/v1/movies/1",
+			wantCode: http.StatusUnprocessableEntity,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			inputData := struct {
+				Title string `json:"title"`
+			}{
+				Title: tt.Title,
+			}
+
+			b, err := json.Marshal(&inputData)
+			if err != nil {
+				t.Fatal("wrong input data")
+			}
+			if tt.name == "Wrong input" {
+				b = append(b, 'a')
+			}
+
+			code, _, _ := ts.patchReq(t, tt.urlPath, b)
+
+			assert.Equal(t, code, tt.wantCode)
+		})
+	}
+}
 
 func TestDeleteMovie(t *testing.T) {
 	app := newTestApplication(t)
@@ -171,7 +237,6 @@ func TestDeleteMovie(t *testing.T) {
 			wantCode: http.StatusNotFound,
 		},
 	}
-
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
