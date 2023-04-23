@@ -153,12 +153,17 @@ func TestUpdateMovie(t *testing.T) {
 	ts := newTestServer(t, app.routesTest())
 	defer ts.Close()
 
-	const validTitle = "Updated Test Title"
+	const (
+		validTitle   = "Updated Test Title"
+		validYear    = 2022
+		validRuntime = "200 mins"
+	)
+	validGenres := []string{"thriller"}
 
 	tests := []struct {
 		name     string
 		Title    string
-		Year     int
+		Year     int32
 		Runtime  string
 		Genres   []string
 		urlPath  string
@@ -167,12 +172,20 @@ func TestUpdateMovie(t *testing.T) {
 		{
 			name:     "Updating existing movie",
 			Title:    validTitle,
+			Year:     validYear,
+			Runtime:  validRuntime,
+			Genres:   validGenres,
 			urlPath:  "/v1/movies/1",
 			wantCode: http.StatusOK,
 		},
 		{
 			name:     "Non-existent ID",
 			urlPath:  "/v1/movies/1337",
+			wantCode: http.StatusNotFound,
+		},
+		{
+			name:     "Invalid ID",
+			urlPath:  "/v1/movies/0",
 			wantCode: http.StatusNotFound,
 		},
 		{
@@ -183,10 +196,10 @@ func TestUpdateMovie(t *testing.T) {
 		},
 		{
 			name:     "Validation error",
-			Title:    "",
-			Year:     0,
-			Runtime:  "",
-			Genres:   []string{},
+			Title:    validTitle,
+			Year:     1337,
+			Runtime:  validRuntime,
+			Genres:   validGenres,
 			urlPath:  "/v1/movies/1",
 			wantCode: http.StatusUnprocessableEntity,
 		},
@@ -195,9 +208,15 @@ func TestUpdateMovie(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			inputData := struct {
-				Title string `json:"title"`
+				Title   string   `json:"title"`
+				Year    int32    `json:"year"`
+				Runtime string   `json:"runtime"`
+				Genres  []string `json:"genres"`
 			}{
-				Title: tt.Title,
+				Title:   tt.Title,
+				Year:    tt.Year,
+				Runtime: tt.Runtime,
+				Genres:  tt.Genres,
 			}
 
 			b, err := json.Marshal(&inputData)
@@ -234,6 +253,11 @@ func TestDeleteMovie(t *testing.T) {
 		{
 			name:     "Non-existent ID",
 			urlPath:  "/v1/movies/2",
+			wantCode: http.StatusNotFound,
+		},
+		{
+			name:     "Invalid ID",
+			urlPath:  "/v1/movies/0",
 			wantCode: http.StatusNotFound,
 		},
 	}
