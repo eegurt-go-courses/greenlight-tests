@@ -195,7 +195,7 @@ func TestUpdateMovie(t *testing.T) {
 			wantCode: http.StatusBadRequest,
 		},
 		{
-			name:     "Validation error",
+			name:     "Failed validation",
 			Title:    validTitle,
 			Year:     1337,
 			Runtime:  validRuntime,
@@ -276,4 +276,43 @@ func TestDeleteMovie(t *testing.T) {
 		})
 	}
 
+}
+
+func TestListMovies(t *testing.T) {
+	app := newTestApplication(t)
+
+	ts := newTestServer(t, app.routesTest())
+	defer ts.Close()
+
+	tests := []struct {
+		name     string
+		urlPath  string
+		wantCode int
+		wantBody string
+	}{
+		{
+			name:     "Valid listing",
+			urlPath:  "/v1/movies",
+			wantCode: http.StatusOK,
+		},
+		{
+			name:     "Negative page number",
+			urlPath:  "/v1/movies?page=-1",
+			wantCode: http.StatusUnprocessableEntity,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			code, _, body := ts.get(t, tt.urlPath)
+
+			assert.Equal(t, code, tt.wantCode)
+
+			if tt.wantBody != "" {
+				assert.StringContains(t, body, tt.wantBody)
+			}
+
+		})
+	}
 }
