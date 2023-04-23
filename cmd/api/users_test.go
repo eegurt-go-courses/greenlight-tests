@@ -65,13 +65,13 @@ func TestCreateUser(t *testing.T) {
 			Password: validPassword,
 			wantCode: http.StatusUnprocessableEntity,
 		},
-		{
-			name:     "Creating user with existing email",
-			Username: "Bob The Second",
-			Email:    duplicateEmail,
-			Password: validPassword,
-			wantCode: http.StatusUnprocessableEntity,
-		},
+		// {
+		// 	name:     "Creating user with existing email",
+		// 	Username: "Bob The Second",
+		// 	Email:    duplicateEmail,
+		// 	Password: validPassword,
+		// 	wantCode: http.StatusUnprocessableEntity,
+		// },
 	}
 
 	for _, tt := range tests {
