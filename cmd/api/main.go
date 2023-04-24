@@ -59,7 +59,7 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.db.dsn, "db-dsn",  os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
 
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
@@ -94,15 +94,15 @@ func main() {
 	logger.PrintInfo("database connection pool established", nil)
 
 	expvar.NewString("version").Set(version)
-	
+
 	expvar.Publish("goroutines", expvar.Func(func() any {
 		return runtime.NumGoroutine()
 	}))
-	
+
 	expvar.Publish("database", expvar.Func(func() any {
 		return db.Stats()
 	}))
-	
+
 	expvar.Publish("timestamp", expvar.Func(func() any {
 		return time.Now().Unix()
 	}))
@@ -122,6 +122,7 @@ func main() {
 
 func openDB(cfg config) (*sql.DB, error) {
 
+	// db, err := sql.Open("postgres", "host=localhost port=5432 user=greenlight password=pa55word dbname=greenlight sslmode=disable")
 	db, err := sql.Open("postgres", cfg.db.dsn)
 	if err != nil {
 		return nil, err
